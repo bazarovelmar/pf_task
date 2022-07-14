@@ -1,0 +1,47 @@
+version: '3.0'
+
+services:
+  php:
+    container_name: pf_task_php
+    build:
+      context: ./docker/local/php
+    environment:
+      XDEBUG_CONFIG: "remote_host=host.docker.internal remote_enable=1 "
+    volumes:
+      - "./:/var/www/app"
+    networks:
+      - pf_task
+
+  nginx:
+    container_name: pf_task_nginx
+    build:
+      dockerfile: ./docker/local/nginx/Dockerfile
+      context: .
+    ports:
+      - 8095:80
+    depends_on:
+      - php
+    volumes:
+      - "./:/var/www/app"
+    networks:
+      - pf_task
+
+  db:
+    container_name: pf_task_db
+    build:
+      context: ./docker/local/db
+    environment:
+      MYSQL_ROOT_PASSWORD: pf_task
+      MYSQL_DATABASE: pf_task
+      MYSQL_USER: pf_task
+      MYSQL_PASSWORD: pf_task
+    volumes:
+      - ./data/db-data-dev:/var/lib/mysql
+    ports:
+      - 3307:3306
+    networks:
+      - pf_task
+
+networks:
+  pf_task:
+    driver: bridge
